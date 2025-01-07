@@ -2,34 +2,58 @@ features
     preprocessing {abstract}
         optional
             motion_correction_realignment // Correct brain misalignment across time serie due to head or physiological motion
-                [1..3] // or
-                    Integer target_image_index
+                alternative
+                    register_to_first
                     register_to_mean
             slice_timing_correction // Correct differences in slices acquisition timing
-                mandatory
-                    Integer target_slice_index // Reference slice on which to align full image timing
             coregistration // Align anatomical and functional images of each subjects
+                mandatory
+                    cost_function
+                        alternative
+                            mutual_information
+                            normalised_mutual_information
+                            entropy_correlation_coefficient
+                            normalised_cross_correlation
             segmentation // Categorize the different tissues composing the brain (WM, GM, CSF)
             spatial_normalization // Align subjects images to a common template
                  mandatory
-                    Real bias_regularisation
-                    Real bias_fwhm
-                    Real voxel_size_x
-                    Real voxel_size_y
-                    Real voxel_size_z
+                    interpolation
+                        alternative
+                            nearest_neighbour
+                            trilinear
+                            bspline
                  optional
-                    "Template"
-                        or
-                            icbm_european
-                            icbm_east_asian
-                            average_sized
+                    bias_regularisation
+                        alternative
+                            light
+                            medium
+                            heavy
+                    bias_fwhm
+                        alternative
+                            "30"
+                            "40"
+                            "60"
+                            "70"
+                            "80"
+                            "90"
+                            "100"
+                            "110"
+                            "120"
+                            "130"
+                            "140"
+                            "150"
             distorsion_correction // Correct dropout and distorsion due to scanner magnetic field inhomogeneity
             spatial_smoothing // Remove high frequency information to increase the signal/noise ratio (blurring)
                 mandatory
-                    Real  smoothing_fwhm_x
-                    Real  smoothing_fwhm_y
-                    Real  smoothing_fwhm_z
-constraints
-    spatial_normalization => distorsion_correction
-    bias_regularisation == 0 | bias_regularisation == 0.00001 | bias_regularisation == 0.0001 | bias_regularisation == 0.001 | bias_regularisation == 0.01 | bias_regularisation == 0.1 | bias_regularisation == 1 | bias_regularisation == 10
-    bias_fwhm == 0 | bias_fwhm == 30  | bias_fwhm == 40  | bias_fwhm == 50  | bias_fwhm == 60  | bias_fwhm == 70  | bias_fwhm == 80  | bias_fwhm == 90  | bias_fwhm == 100  | bias_fwhm == 110  | bias_fwhm == 120   | bias_fwhm == 130  | bias_fwhm == 140  | bias_fwhm == 150
+                    fwhm
+                        alternative
+                            "1"
+                            "2"
+                            "3"
+                            "4"
+                            "5"
+                            "6"
+                            "7"
+                            "8"
+                            "9"
+                            "10"
