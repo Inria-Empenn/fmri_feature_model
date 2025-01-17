@@ -27,7 +27,7 @@ features
                         alternative
                             light
                             medium
-                            heavy
+                            heapvy
                     bias_fwhm
                         alternative
                             "30"
