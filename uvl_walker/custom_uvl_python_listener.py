@@ -16,10 +16,12 @@ class CustomUVLPythonListener(UVLPythonListener):
 
     json = ""
 
-    def printJson(self):
-        print(self.json)
-        json_data = json.loads("{" + self.json.rstrip(',') + "}")
+    def print_json(self):
+        json_data = self.get_json()
         pprint.pprint(json_data, compact=True)
+
+    def get_json(self):
+        return json.loads("{" + self.json.rstrip(',') + "}")
 
     def close(self, bracket: str):
         self.json = self.json.rstrip(',')
