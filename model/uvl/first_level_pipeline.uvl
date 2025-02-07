@@ -1,0 +1,9 @@
+features
+    first_level {abstract}
+        signal_modelling
+            mandatory
+                hrf
+                    alternative
+                        canonical
+                        with_derivs
+                        finite_impulse_response

@@ -1,59 +1,66 @@
 features
     preprocessing {abstract}
-        optional
+        mandatory
+            distorsion_correction // Correct dropout and distorsion due to scanner magnetic field inhomogeneity
             motion_correction_realignment // Correct brain misalignment across time serie due to head or physiological motion
-                alternative
-                    register_to_first
-                    register_to_mean
+                mandatory
+                    "motion_correction_realignment/register_to"
+                        alternative
+                            "motion_correction_realignment/register_to/first"
+                            "motion_correction_realignment/register_to/mean"
             slice_timing_correction // Correct differences in slices acquisition timing
+                mandatory
+                    "slice_timing_correction/ref_slice"
+                        alternative
+                            "slice_timing_correction/ref_slice/first"
+                            "slice_timing_correction/ref_slice/middle"
             coregistration // Align anatomical and functional images of each subjects
                 mandatory
-                    cost_function
+                    "coregistration/cost_function"
                         alternative
-                            mutual_information
-                            normalised_mutual_information
-                            entropy_correlation_coefficient
-                            normalised_cross_correlation
+                            "coregistration/cost_function/mutual_information"
+                            "coregistration/cost_function/normalised_mutual_information"
+                            "coregistration/cost_function/entropy_correlation_coefficient"
+                            "coregistration/cost_function/normalised_cross_correlation"
             segmentation // Categorize the different tissues composing the brain (WM, GM, CSF)
             spatial_normalization // Align subjects images to a common template
                  mandatory
-                    interpolation
+                    "spatial_normalization/interpolation"
                         alternative
-                            nearest_neighbour
-                            trilinear
-                            bspline
+                            "spatial_normalization/interpolation/nearest_neighbour"
+                            "spatial_normalization/interpolation/trilinear"
+                            "spatial_normalization/interpolation/bspline"
                  optional
-                    bias_regularisation
+                    "spatial_normalization/bias_regularisation"
                         alternative
-                            light
-                            medium
-                            heapvy
-                    bias_fwhm
+                            "spatial_normalization/bias_regularisation/light"
+                            "spatial_normalization/bias_regularisation/medium"
+                            "spatial_normalization/bias_regularisation/heavy"
+                    "spatial_normalization/bias_fwhm"
                         alternative
-                            "30"
-                            "40"
-                            "60"
-                            "70"
-                            "80"
-                            "90"
-                            "100"
-                            "110"
-                            "120"
-                            "130"
-                            "140"
-                            "150"
-            distorsion_correction // Correct dropout and distorsion due to scanner magnetic field inhomogeneity
+                            "spatial_normalization/bias_fwhm/30"
+                            "spatial_normalization/bias_fwhm/40"
+                            "spatial_normalization/bias_fwhm/60"
+                            "spatial_normalization/bias_fwhm/70"
+                            "spatial_normalization/bias_fwhm/80"
+                            "spatial_normalization/bias_fwhm/90"
+                            "spatial_normalization/bias_fwhm/100"
+                            "spatial_normalization/bias_fwhm/110"
+                            "spatial_normalization/bias_fwhm/120"
+                            "spatial_normalization/bias_fwhm/130"
+                            "spatial_normalization/bias_fwhm/140"
+                            "spatial_normalization/bias_fwhm/150"
             spatial_smoothing // Remove high frequency information to increase the signal/noise ratio (blurring)
                 mandatory
-                    fwhm
+                    "spatial_smoothing/fwhm"
                         alternative
-                            "1"
-                            "2"
-                            "3"
-                            "4"
-                            "5"
-                            "6"
-                            "7"
-                            "8"
-                            "9"
-                            "10"
+                            "spatial_smoothing/fwhm/1"
+                            "spatial_smoothing/fwhm/2"
+                            "spatial_smoothing/fwhm/3"
+                            "spatial_smoothing/fwhm/4"
+                            "spatial_smoothing/fwhm/5"
+                            "spatial_smoothing/fwhm/6"
+                            "spatial_smoothing/fwhm/7"
+                            "spatial_smoothing/fwhm/8"
+                            "spatial_smoothing/fwhm/9"
+                            "spatial_smoothing/fwhm/10"
