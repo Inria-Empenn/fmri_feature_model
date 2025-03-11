@@ -4,13 +4,10 @@ from flamapy.metamodels.configuration_metamodel.models.configuration import Conf
 from nipype import Node
 from nipype.interfaces.spm import Smooth, Coregister, NewSegment, SliceTiming, Normalize12, Realign
 
-from core.metadata import Metadata
-from core.workflow_service import WorkflowService
+from core.data_descriptor import DataDescriptor
 
 
 class PreprocService:
-
-    workflow_srv = WorkflowService()
 
     spm_path = '/home/ymerel/spm12/'
 
@@ -25,6 +22,8 @@ class PreprocService:
     ]
 
     bias_regs = {
+        'extremely_light': 0.00001,
+        'very_light': 0.0001,
         'light': 0.001,
         'medium': 0.01,
         'heavy': 0.1
@@ -37,23 +36,27 @@ class PreprocService:
         'normalised_cross_correlation': 'ncc'
     }
 
-    def get_nodes(self, config: Configuration, metadata: Metadata):
-        nodes = []
+    def get_nodes(self, config: Configuration, data_desc: DataDescriptor) -> dict[str, Node]:
+        nodes = {}
         features = config.get_selected_elements()
 
         for step in self.steps:
             if step in features:
-                nodes.append(self.get_node(step, features, metadata))
+                print(f"Implementing [{step}]...")
+                node = self.get_node(step, features, data_desc)
+                if node:
+                    nodes[step] = node
+                print(f"[{step}] added to workflow")
 
         return nodes
 
-    def get_node(self, name, features: list, metadata: Metadata):
+    def get_node(self, name, features: list, data_desc: DataDescriptor):
         if name == 'distorsion_correction':
-            print('distorsion_correction')
+            return self.get_distorsion_correction(features)
         if name == 'motion_correction_realignment':
             return self.get_motion_correction_realignment(features)
         if name == 'slice_timing_correction':
-            return self.get_slice_timing_correction(features, metadata)
+            return self.get_slice_timing_correction(features, data_desc)
         if name == 'coregistration':
             return self.get_coregistration(features)
         if name == 'segmentation':
@@ -77,13 +80,13 @@ class PreprocService:
                 node.inputs.register_to_mean = True
         return node
 
-    def get_slice_timing_correction(self, features: list, metadata: Metadata):
+    def get_slice_timing_correction(self, features: list, data_desc: DataDescriptor):
         name = "slice_timing_correction"
         node = Node(interface=SliceTiming(), name=name)
-        node.inputs.num_slices = metadata.slices_nb
-        node.inputs.time_repetition = metadata.tr
-        node.inputs.time_acquisition = metadata.tr - (metadata.tr / metadata.slices_nb)
-        node.inputs.slice_order = list(range(metadata.slices_nb, 0, -1))  # [64 63 62 ... 3 2 1]
+        node.inputs.num_slices = data_desc.slices_nb
+        node.inputs.time_repetition = data_desc.tr
+        node.inputs.time_acquisition = data_desc.tr - (data_desc.tr / data_desc.slices_nb)
+        node.inputs.slice_order = list(range(data_desc.slices_nb, 0, -1))  # [64 63 62 ... 3 2 1]
 
         if f"{name}/ref_slice" in features:
 
@@ -91,7 +94,7 @@ class PreprocService:
                 node.inputs.ref_slice = 1
 
             if f"{name}/ref_slice/middle" in features:
-                node.inputs.ref_slice = metadata.slices_nb / 2
+                node.inputs.ref_slice = data_desc.slices_nb / 2
 
         return node
 
@@ -99,7 +102,7 @@ class PreprocService:
         name = "coregistration"
         node = Node(interface=Coregister(), name=name)
 
-        function = self.workflow_srv.get_feature_leaf(f"{name}/cost_function", features)
+        function = self.get_feature_end(f"{name}/cost_function", features)
         node.inputs.cost_function = self.cost_funcs[function]
 
         return node
@@ -124,22 +127,32 @@ class PreprocService:
         node.inputs.jobtype = 'write'
 
         if f"{name}/bias_regularisation" in features:
-            node.inputs.bias_regularization = self.bias_regs[self.workflow_srv.get_feature_leaf(f"{name}/bias_regularisation", features)]
+            node.inputs.bias_regularization = self.bias_regs[self.get_feature_end(f"{name}/bias_regularisation", features)]
         else:
             node.inputs.bias_regularization = 0
 
         if f"{name}/bias_fwhm" in features:
-            node.inputs.bias_fwhm = float(self.workflow_srv.get_feature_leaf(f"{name}/bias_fwhm", features))
+            node.inputs.bias_fwhm = float(self.get_feature_end(f"{name}/bias_fwhm", features))
         else:
             node.inputs.bias_fwhm = "Inf"
 
         return node
 
     def get_smoothing(self, features: list):
-        name = "smoothing"
+        name = "spatial_smoothing"
         node = Node(interface=Smooth(), name=name)
 
+        node.inputs.fwhm = 0
         if f"{name}/fwhm" in features:
-            node.inputs.fwhm = float(self.workflow_srv.get_feature_leaf(f"{name}/fwhm", features))
+            node.inputs.fwhm = float(self.get_feature_end(f"{name}/fwhm", features))
 
         return node
+
+    def get_feature_end(self, prefix, features):
+        for feature in features:
+            if feature.startswith(prefix + '/'):
+                return feature.removeprefix(prefix + '/')
+        return ""
+
+    def get_distorsion_correction(self, features):
+        return None
