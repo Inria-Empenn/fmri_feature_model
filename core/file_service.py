@@ -3,12 +3,10 @@ import glob
 import hashlib
 import json
 import os
-import re
 
 import nibabel as nib
 import numpy as np
 import pandas as pd
-from flamapy.metamodels.configuration_metamodel.models.configuration import Configuration
 
 from core.data_descriptor import DataDescriptor
 
@@ -20,6 +18,7 @@ CONFIGS_CSV = "configurations.csv"
 CORR_MEAN = 'correlations_from_mean.csv'
 CORR_REF = 'correlations_from_ref.csv'
 CORR = 'correlations.csv'
+HCP_EXCLUDED = 'excluded_subjects.csv'
 
 RESULT_NII = 'result.nii'
 MEAN_NII = 'mean_result.nii'
@@ -47,7 +46,7 @@ class FileService:
 
     def write_data_descriptor(self, data_desc: DataDescriptor):
         with open(os.path.join(data_desc.result_path, DATA_DESC), 'w') as file:
-            json.dump(data_desc, file, indent=4)
+            json.dump(data_desc.__dict__, file, indent=4)
 
     def list_all_runs(self, path: str):
         return glob.glob(os.path.join(path, run_pattern))
@@ -55,14 +54,31 @@ class FileService:
     def list_all_nifti(self, path: str):
         return glob.glob(os.path.join(path, run_pattern, '**', '*.nii'), recursive=True)
 
-    def write_config2csv(self, config: Configuration, path: str):
-        file = os.path.join(path, CONFIG_CSV)
+    def write_config2csv(self, config: dict | list[dict], path: str):
+        configs = []
+        if isinstance(config, dict):
+            configs.append(config)
+        elif isinstance(config, list):
+            configs = config
+
+        file = os.path.join(path)
         with open(file, mode='w', newline='') as csv_file:
             writer = csv.writer(csv_file, delimiter=';')
-            writer.writerow(config.elements.keys())
-            writer.writerow(config.elements.values())
-        print(f"Configuration saved to [{file}]")
+            writer.writerow(configs[0].keys())
+            for config in configs:
+                writer.writerow(config.values())
+        print(f"Configuration(s) saved to [{file}]")
         return file
+
+    def read_config(self, path: str) -> list[dict]:
+        configs = []
+        df = pd.read_csv(path, delimiter=';')
+        for index, row in df.iterrows():
+            elements = dict()
+            for column, value in row.items():
+                elements[column] = value
+            configs.append(elements)
+        return configs
 
     def write_dataframe2csv(self, df: pd.DataFrame, path):
         df.to_csv(path, index=False, sep=';')
@@ -73,7 +89,7 @@ class FileService:
 
         for id in ids:
             config = os.path.join(path, id, CONFIG_CSV)
-            df = pd.read_csv(config)
+            df = pd.read_csv(config, delimiter=';')
             df['id'] = id
             dataframes.append(df)
 
@@ -99,8 +115,8 @@ class FileService:
         print(f"Mean nifti image written to [{path}]")
         return os.path.join(path)
 
-    def hash_config(self, config: Configuration):
-        data = ''.join(config.get_selected_elements()).encode('utf-8')
+    def hash_config(self, config: dict):
+        data = json.dumps(config, sort_keys=True).encode('utf-8')
         hashfunc = hashlib.sha256()
         hashfunc.update(data)
         return hashfunc.hexdigest()

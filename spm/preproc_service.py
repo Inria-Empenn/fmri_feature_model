@@ -1,15 +1,13 @@
 import os
 
-from flamapy.metamodels.configuration_metamodel.models.configuration import Configuration
 from nipype import Node
 from nipype.interfaces.spm import Smooth, Coregister, NewSegment, SliceTiming, Normalize12, Realign
+from nipype.interfaces.spm.base import Info as SPMInfo
 
 from core.data_descriptor import DataDescriptor
 
 
 class PreprocService:
-
-    spm_path = '/home/ymerel/spm12/'
 
     steps = [
         'distorsion_correction',
@@ -36,10 +34,10 @@ class PreprocService:
         'normalised_cross_correlation': 'ncc'
     }
 
-    def get_nodes(self, config: Configuration, data_desc: DataDescriptor) -> dict[str, Node]:
-        nodes = {}
-        features = config.get_selected_elements()
+    tpm_file = os.path.join(SPMInfo.getinfo()['path'], 'tpm', 'TPM.nii')
 
+    def get_nodes(self, features: list, data_desc: DataDescriptor) -> dict[str, Node]:
+        nodes = {}
         for step in self.steps:
             if step in features:
                 print(f"Implementing [{step}]...")
@@ -51,20 +49,21 @@ class PreprocService:
         return nodes
 
     def get_node(self, name, features: list, data_desc: DataDescriptor):
-        if name == 'distorsion_correction':
-            return self.get_distorsion_correction(features)
-        if name == 'motion_correction_realignment':
-            return self.get_motion_correction_realignment(features)
-        if name == 'slice_timing_correction':
-            return self.get_slice_timing_correction(features, data_desc)
-        if name == 'coregistration':
-            return self.get_coregistration(features)
-        if name == 'segmentation':
-            return self.get_segmentation(features)
-        if name == 'spatial_normalization':
-            return self.get_spatial_normalization(features)
-        if name == 'spatial_smoothing':
-            return self.get_smoothing(features)
+        match name:
+            case 'distorsion_correction':
+                return self.get_distorsion_correction(features)
+            case 'motion_correction_realignment':
+                return self.get_motion_correction_realignment(features)
+            case 'slice_timing_correction':
+                return self.get_slice_timing_correction(features, data_desc)
+            case 'coregistration':
+                return self.get_coregistration(features)
+            case 'segmentation':
+                return self.get_segmentation(features)
+            case 'spatial_normalization':
+                return self.get_spatial_normalization(features)
+            case 'spatial_smoothing':
+                return self.get_smoothing(features)
 
     def get_motion_correction_realignment(self, features: list):
 
@@ -109,13 +108,12 @@ class PreprocService:
 
     def get_segmentation(self, features: list):
         node = Node(interface=NewSegment(), name="segmentation")
-        tpm_file = os.path.abspath(os.path.join(self.spm_path, 'tpm/TPM.nii'))
-        tissue1 = (tpm_file, 1), 1, (True, False), (False, False)
-        tissue2 = (tpm_file, 2), 1, (True, False), (False, False)
-        tissue3 = (tpm_file, 3), 2, (True, False), (False, False)
-        tissue4 = (tpm_file, 4), 3, (True, False), (False, False)
-        tissue5 = (tpm_file, 5), 4, (True, False), (False, False)
-        tissue6 = (tpm_file, 6), 2, (False, False), (False, False)
+        tissue1 = (self.tpm_file, 1), 1, (True, False), (False, False)
+        tissue2 = (self.tpm_file, 2), 1, (True, False), (False, False)
+        tissue3 = (self.tpm_file, 3), 2, (True, False), (False, False)
+        tissue4 = (self.tpm_file, 4), 3, (True, False), (False, False)
+        tissue5 = (self.tpm_file, 5), 4, (True, False), (False, False)
+        tissue6 = (self.tpm_file, 6), 2, (False, False), (False, False)
         node.inputs.tissues = [tissue1, tissue2, tissue3, tissue4, tissue5, tissue6]
         node.inputs.write_deformation_fields = [False, True]
         return node

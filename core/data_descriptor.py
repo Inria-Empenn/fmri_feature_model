@@ -1,9 +1,9 @@
 class DataDescriptor:
     data_path = ""
-    anat_subpath = ""
-    func_subpath = ""
+    input = {}
     result_path = ""
     work_path = ""
+    task = ""
     subjects = []
     slices_nb = 0
     tr = 0
@@ -11,10 +11,10 @@ class DataDescriptor:
 
     def __init__(self, data: {}):
         self.data_path = data["data_path"]
-        self.anat_subpath = data["anat_subpath"]
-        self.func_subpath = data["func_subpath"]
+        self.input = data["input"]
         self.result_path = data["result_path"]
         self.work_path = data["work_path"]
+        self.task = data["task"]
         self.subjects = data["subjects"]
         self.slices_nb = data["slices_nb"]
         self.tr = data["tr"]

@@ -18,7 +18,7 @@ class PostprocessService:
         for conf_id in ids:
             contrast = os.path.join(path, conf_id, '_subject_id_01', 'result.nii')
             config = os.path.join(path, conf_id, 'config.csv')
-            df = pd.read_csv(config, delimiter=';')
+            df = pd.read_csv(config, delimiter=';').astype(bool)
             df['id'] = conf_id
             df['from_ref'] = self.corr_srv.get_correlation_coefficient(contrast, ref_contrast, 'spearman')
             df['from_mean'] = self.corr_srv.get_correlation_coefficient(contrast, mean, 'spearman')

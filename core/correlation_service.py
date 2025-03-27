@@ -7,7 +7,7 @@ from pandas import DataFrame
 from scipy.stats import spearmanr
 
 
-class StatService:
+class CorrelationService:
     def compute_correlations(self, image, images: list[str]) -> DataFrame:
         print(f"Computing correlations from [{image}] to [{len(images)}] images... ", end='')
         dfs = []
