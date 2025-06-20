@@ -75,15 +75,7 @@ features
                         alternative
                             "spatial_smoothing/tool/spm"
                 optional
-                    "spatial_smoothing/fwhm"  {doc 'Size (in mm) of the smoothing kernel'}
-                        alternative
-                            "spatial_smoothing/fwhm/2"
-                            "spatial_smoothing/fwhm/4"
-                            "spatial_smoothing/fwhm/6" {reference 'yes'}
-                            "spatial_smoothing/fwhm/8"
-                            "spatial_smoothing/fwhm/10"
-                            "spatial_smoothing/fwhm/12"
-                            "spatial_smoothing/fwhm/14"
+                    Integer "spatial_smoothing/fwhm"  {doc 'Size (in mm) of the smoothing kernel'}
         optional
             segmentation // Categorize the different tissues composing the brain (WM, GM, CSF)
             slice_timing_correction {doc 'Correct differences in slices acquisition timing'}
