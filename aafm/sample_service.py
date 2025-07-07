@@ -4,7 +4,7 @@ from aafm.AAFM_service import AAFMService
 
 
 class SampleService:
-    path2fm = '/home/ymerel/fmri-feature-model/model/uvl/full_pipeline.uvl'
+    path2fm = 'model/uvl/full_pipeline.uvl'
     aafm_srv = AAFMService()
 
     def get_config_sample(self, size) -> list[dict]:
