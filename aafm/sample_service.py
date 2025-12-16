@@ -22,7 +22,14 @@ class SampleService:
         fm = self.aafm_srv.get_feature_model(self.path2fm)
         configs = self.aafm_srv.get_all_config(fm)
         all = []
+        features = self.aafm_srv.get_features(fm.root, None)
         for conf in configs:
+
+            elements = conf.elements
+            for feat in features:
+                if feat.name not in elements.keys():
+                    elements[feat.name] = False
+            print(len(elements))
             all.append(conf.elements)
         print(f"Retrieved all [{str(len(all))}] configurations from [{self.path2fm}]")
         return all

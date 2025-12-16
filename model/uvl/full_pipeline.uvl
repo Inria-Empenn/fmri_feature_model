@@ -3,7 +3,6 @@ features
         mandatory
             preprocessing
                 mandatory
-                    distorsion_correction {doc 'Correct dropout and distorsion due to scanner magnetic field inhomogeneity'}
                     motion_correction_realignment {doc 'Correct brain misalignment across time serie due to head or physiological motion'}
                         mandatory
                             "motion_correction_realignment/tool"
@@ -87,7 +86,12 @@ features
                                     "spatial_smoothing/fwhm/12"
                                     "spatial_smoothing/fwhm/14"
                 optional
+                    distorsion_correction {doc 'Correct dropout and distorsion due to scanner magnetic field inhomogeneity'}
                     segmentation // Categorize the different tissues composing the brain (WM, GM, CSF)
+                        mandatory
+                            "segmentation/tool"
+                                alternative
+                                    "segmentation/tool/spm"
                     slice_timing_correction {doc 'Correct differences in slices acquisition timing'}
                         mandatory
                             "slice_timing_correction/tool"
@@ -103,16 +107,16 @@ features
                         mandatory
                             "signal_modeling/tool"
                                 alternative
-                                    "signal_modeling/tool/SPM"
+                                    "signal_modeling/tool/spm"
                             "signal_modeling/hrf"
                                 alternative
                                     "signal_modeling/hrf/canonical"
                                     "signal_modeling/hrf/temporal_derivs" {reference}
                                     "signal_modeling/hrf/temporal_dispersion_derivs"
-                            "signal_modelling/temporal_noise_autocorrelation"
+                            "signal_modeling/temporal_noise_autocorrelation"
                                 alternative
-                                    "signal_modelling/temporal_noise_autocorrelation/AR1"
-                                    "signal_modelling/temporal_noise_autocorrelation/FAST" {reference}// => SPM
+                                    "signal_modeling/temporal_noise_autocorrelation/AR1"
+                                    "signal_modeling/temporal_noise_autocorrelation/FAST" {reference}// => SPM
                         optional
                             "signal_modeling/nuisance_regressors"
                                 or
@@ -123,12 +127,14 @@ features
                                             "signal_modeling/nuisance_regressors/motion/24" {reference}
                                     "signal_modeling/nuisance_regressors/comp_cor" // from fMRIPrep
 constraints
+    "spatial_smoothing/fwhm/6"
     "spatial_normalization/algorithm/linear" => !"spatial_normalization/tool/spm"
     "spatial_normalization/tool/spm" <=> segmentation
     !"spatial_normalization/algorithm/DARTEL" // only with group analysis
     !"spatial_normalization/bias_regularisation" // variation not typical
     !"spatial_normalization/bias_fwhm" // variation not typical
+    !"distorsion_correction" // needs a fieldmap
     "spatial_normalization/tool/spm" => "spatial_normalization/template/Ixi549Space"
     "spatial_normalization/tool/spm" => !"spatial_normalization/algorithm/linear"
     !"signal_modeling/nuisance_regressors/comp_cor" // needs fMRIPrep
-    "signal_modelling/temporal_noise_autocorrelation/FAST" => "signal_modeling/tool/SPM"
+    "signal_modeling/temporal_noise_autocorrelation/FAST" => "signal_modeling/tool/spm"
