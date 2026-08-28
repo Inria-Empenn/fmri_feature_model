@@ -113,11 +113,11 @@ features
                                     "signal_modeling/hrf/canonical"
                                     "signal_modeling/hrf/temporal_derivs" {reference}
                                     "signal_modeling/hrf/temporal_dispersion_derivs"
+                        optional
                             "signal_modeling/temporal_noise_autocorrelation"
                                 alternative
                                     "signal_modeling/temporal_noise_autocorrelation/AR1"
                                     "signal_modeling/temporal_noise_autocorrelation/FAST" {reference}// => SPM
-                        optional
                             "signal_modeling/nuisance_regressors"
                                 or
                                     "signal_modeling/nuisance_regressors/motion"
